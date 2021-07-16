@@ -9,3 +9,5 @@
 
 ## Run Application (Optimized Build)
 - $ cargo web start --target-webasm-emscripten=wasm32-unknown-emscripten --release
+
+[![Rust](https://github.com/shikharvashistha/to_do/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/shikharvashistha/to_do/actions/workflows/rust.yml)
