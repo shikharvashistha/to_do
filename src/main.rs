@@ -76,7 +76,7 @@ fn view(model: &Model) -> Html<Msg> {
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
         //Closure to create a new todo from the edited text.
         html!{//This allow us to write html in rust.
-            <label><input type="Text",
+            <label><input type="text",
                     value=&todo.text,
                     oninput=|e: InputData| Msg::UpdateEdit(e.value),
                     onkeypress=move |e: KeyData| {
@@ -106,7 +106,7 @@ fn view(model: &Model) -> Html<Msg> {
         <div>
             <h1>{"Todo App"}</h1>
             <input
-                placeholder="What do you want to do?",
+                placeholder="what do you want to do?",
                 value=&model.input,//Signify that the value of our input is model.input
                 oninput=|e: InputData| Msg::Update(e.value),//oninput listner it will take a closure which will take input data and msg update
                 onkeypress=|e: KeyData| {//on key press listner allow user to enter actual data
