@@ -13,20 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install Dependencies
-      working-directory: src/
+    - name: Install Dependencies      
       run: |
           cargo install cargo-web
           rustup target add asmjs-unknown-emscripten
-          rustup target add wasm32-unknown-emscripten
-          cargo web start
-          cargo web start --target-webasm-emscripten=wasm32-unknown-emscripten --release
-    - name: Build
-      working-directory: src/
-      run: cargo build --verbose
-    - name: Run tests
-      working-directory: src/
-      run: cargo test --verbose
-    - name: Run
-      working-directory: src/
-      run: cargo run --verbose
+          rustup target add wasm32-unknown-emscripten          
+    - name: Build      
+      run: cargo web start
