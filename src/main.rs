@@ -97,6 +97,7 @@ fn view(model: &Model) -> Html<Msg> {
                 { view_todo_edit((i, &todo))}
             </li>
             <button onclick = move |_| Msg::Remove(i),>{"X"}</button></li>
+            //move closure takes the oewnership of our index
         }
     };
 
