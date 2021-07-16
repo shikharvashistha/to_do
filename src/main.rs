@@ -1,10 +1,10 @@
-#[macro_use]
-extern crate yew;
+//emscripten sdk is traditionally used to complie c and c++ code into javascript and webassembly.
+//Here we'll compile rust code into javascript and webassembly.
+//get emscripten sdk from https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html
+#[macro_use]//Helps us to get macros from inside of the crate
+extern crate yew;//external crate
 
-use yew::prelude::*;
-
-type Context = ();
-
+use yew::html::*;
 
 struct Model {
     input: String,
@@ -30,117 +30,112 @@ enum Msg {
     Nothing,
 }
 
-
-impl Component<Context> for Model {
-    type Msg = Msg;
-    type Properties = ();
-
-    fn create(_: &mut Env<Context, Self>) -> Self {
-        Model {
-            todos: vec![],
-            input: "".to_string(),
-            edit_input: "".to_string(),
+fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+    match msg {
+        Msg::Add => {
+            let t = Todo {
+                text: model.input.clone(),//what is in there in the input clone it
+                edit: false,
+            };
+            model.todos.push(t);//put it in todos vector
+            model.input = "".to_string();//replace with empty string in the input
         }
+        Msg::Update(s) => {
+            model.input = s;//replace with input string
+        }
+        Msg::Remove(i) => {
+            model.todos.remove(i);//remove ith entry from todos vector
+        }
+        Msg::RemoveAll => {
+            model.todos = vec![];//reset todos vector
+        }
+        Msg::UpdateEdit(s) => {
+            //assigns the string s to edit_input.
+            model.edit_input = s;
+        }
+        Msg::Edit(i) => {
+            //creates a new todo from the edited text.
+            let val = Todo {
+                text: model.edit_input.clone(),
+                edit: false,
+            };
+            model.todos.remove(i);
+            model.todos.push(val);
+        }
+        Msg::Toggle(i) => {
+            //gets todo from vector then looks at edit field.
+            let todo = model.todos.get_mut(i).unwrap();
+            todo.edit = !todo.edit;
+        }
+        Msg::Nothing => {}
     }
+}
 
-    // Some details omitted. Explore the examples to get more.
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
-            match msg {
-            Msg::Add => {
-                let t = Todo {
-                    text: self.input.clone(),
-                    edit: false,
-                };
-                self.todos.push(t);
-                self.input = "".to_string();
-            }
-            Msg::Update(s) => {
-                self.input = s;
-            }
-            Msg::Remove(i) => {
-                self.todos.remove(i);
-            }
-            Msg::RemoveAll => {
-                self.todos = vec![];
-            }
-            Msg::UpdateEdit(s) => {
-                //assigns the string s to edit_input.
-                self.edit_input = s;
-            }
-            Msg::Edit(i) => {
-                //creates a new todo from the edited text.
-                let val = Todo {
-                    text: self.edit_input.clone(),
-                    edit: false,
-                };
-                self.todos.remove(i);
-                self.todos.push(val);
-            }
-            Msg::Toggle(i) => {
-                //gets todo from vector then looks at edit field.
-                let todo = self.todos.get_mut(i).unwrap();
-                todo.edit = !todo.edit;
-            }
-            Msg::Nothing => {}            
-        } // end match
-        
-        true
-    }// end update
-} //end impl Component<Context> for Model
-
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
-       //allows for editing of todos independently.
+fn view(model: &Model) -> Html<Msg> {
+    //allows for editing of todos independently.
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
-        html!{
-            <label><input type="text",value=&todo.text,oninput=|e: InputData| Msg::UpdateEdit(e.value),onkeypress=move |e: KeyData| {
+        //Closure to create a new todo from the edited text.
+        html!{//This allow us to write html in rust.
+            <label><input type="Text",
+                    value=&todo.text,
+                    oninput=|e: InputData| Msg::UpdateEdit(e.value),
+                    onkeypress=move |e: KeyData| {
                         if e.key == "Enter" {Msg::Edit(i)} else {Msg::Nothing}
                     },
                     />
-            </label>
+                    </label>
         }
     } else {
         html! {
-                <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
-                </label>
+            <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
+            </label>
         }
     };
     let view_todo = |(i, todo): (usize, &Todo)| {
-        html!{
+        html!{//removes a particular todo from the todos vector.
             <li>
                 { view_todo_edit((i, &todo))}
             </li>
             <button onclick = move |_| Msg::Remove(i),>{"X"}</button></li>
         }
     };
-        html! {
-            <div>
-                <h1>{"Todo App"}</h1>
-                <input
-                    placeholder="what do you want to do?",
-                    value=&self.input,
-                    oninput=|e: InputData| Msg::Update(e.value),
-                    onkeypress=|e: KeyData| {
-                        if e.key == "Enter" {Msg::Add} else {Msg::Nothing}
-                    },/>
 
-            </div>
-            <div>
-                <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
-            </div>
-            <div>
-                <ul>
-                {for self.todos.iter().enumerate().map(view_todo)}
-                </ul>
-            </div>
-        }
-       
-    } // end fn view(&self) -> Html<Context, Self>
-} // end impl Renderable<Context, Model> for Model
+
+    html! {
+        <div>
+            <h1>{"Todo App"}</h1>
+            <input
+                placeholder="What do you want to do?",
+                value=&model.input,//Signify that the value of our input is model.input
+                oninput=|e: InputData| Msg::Update(e.value),//oninput listner it will take a closure which will take input data and msg update
+                onkeypress=|e: KeyData| {//on key press listner allow user to enter actual data
+                    if e.key == "Enter" {Msg::Add} else {Msg::Nothing}//if the key pressed is enter 
+                    //we will put call the msg add function otherwise we do nothing
+                },/>
+                <p>{&model.input}</p>//paragraph tag to display the input string what user is typing    
+
+        </div>
+        <div>
+            <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
+            //button to delete all todos using onclick listner it'll take an element
+            //which is anonoyms and it calls remove all function
+        </div>
+        <div>
+            <ul>//unordered list
+            {for model.todos.iter().enumerate().map(view_todo)}//enumerate across the iterator
+            //it'll return numbers for each of the index of elements in the vector
+            //then we'll map those numbers and values onto our view_todo closure.
+            </ul>
+        </div>
+    }
+}
 
 fn main() {
-    yew::initialize();
-    let app: App<_, Model> = App::new(());
-    app.mount_to_body();
-    yew::run_loop();
+    let model = Model {
+        todos: vec![],
+        input: "".to_string(),
+        edit_input: "".to_string(),
+    };//web server comes with hot reloading so everytime we change our code it will 
+    //automatically recompile it on the server.
+    program(model, update, view);
 }

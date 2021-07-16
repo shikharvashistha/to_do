@@ -1,3 +1,11 @@
-# to_do
-- To Do Application using WASM and Yew frame work(Elm programmed in rustlang).
+# To_Do Application using web assembly.
+- To Do Application using WASM and Yew framework(Elm programmed in rustlang).
 - It uses model-view-controller(MVC) programming model and reactive programming as Elm does.
+
+## Install Dependencies
+- $ cargo install cargo-web
+- $ rustup target add asmjs-unknown-emscripten
+- $ rustup target add wasm32-unknown-emscripten
+
+## Run Application (Optimized Build)
+- $ cargo web start --target-webasm-emscripten=wasm32-unknown-emscripten --release

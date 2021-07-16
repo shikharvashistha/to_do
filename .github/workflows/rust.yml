@@ -17,6 +17,11 @@ jobs:
       run: |
           cargo install cargo-web
           rustup target add asmjs-unknown-emscripten
-          rustup target add wasm32-unknown-emscripten          
+          rustup target add wasm32-unknown-emscripten
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+          source ./emsdk_env.sh
     - name: Build      
-      run: cargo web start
+      run: cargo web start --target-webasm-emscripten=wasm32-unknown-emscripten --release
