@@ -1,10 +1,10 @@
-//emscripten sdk is traditionally used to complie c and c++ code into javascript and webassembly.
-//Here we'll compile rust code into javascript and webassembly.
-//get emscripten sdk from https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html
-#[macro_use]//Helps us to get macros from inside of the crate
-extern crate yew;//external crate
+#[macro_use]
+extern crate yew;
 
-use yew::html::*;
+use yew::prelude::*;
+
+type Context = ();
+
 
 struct Model {
     input: String,
@@ -30,46 +30,63 @@ enum Msg {
     Nothing,
 }
 
-fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
-    match msg {
-        Msg::Add => {
-            let t = Todo {
-                text: model.input.clone(),//what is in there in the input clone it
-                edit: false,
-            };
-            model.todos.push(t);//put it in todos vector
-            model.input = "".to_string();//replace with empty string in the input
+
+impl Component<Context> for Model {
+    type Msg = Msg;
+    type Properties = ();
+
+    fn create(_: &mut Env<Context, Self>) -> Self {
+        Model {
+            todos: vec![],
+            input: "".to_string(),
+            edit_input: "".to_string(),
         }
-        Msg::Update(s) => {
-            model.input = s;//replace with input string
-        }
-        Msg::Remove(i) => {
-            model.todos.remove(i);//remove ith entry from todos vector
-        }
-        Msg::RemoveAll => {
-            model.todos = vec![];//reset todos vector
-        }
-        Msg::UpdateEdit(s) => {
-            //assigns the string s to edit_input.
-            model.edit_input = s;
-        }
-        Msg::Edit(i) => {
-            //creates a new todo from the edited text.
-            let val = Todo {
-                text: model.edit_input.clone(),
-                edit: false,
-            };
-            model.todos.remove(i);
-            model.todos.push(val);
-        }
-        Msg::Toggle(i) => {
-            //gets todo from vector then looks at edit field.
-            let todo = model.todos.get_mut(i).unwrap();
-            todo.edit = !todo.edit;
-        }
-        Msg::Nothing => {}
     }
-}
+
+    // Some details omitted. Explore the examples to get more.
+    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
+            match msg {
+            Msg::Add => {
+                let t = Todo {
+                    text: self.input.clone(),
+                    edit: false,
+                };
+                self.todos.push(t);
+                self.input = "".to_string();
+            }
+            Msg::Update(s) => {
+                self.input = s;
+            }
+            Msg::Remove(i) => {
+                self.todos.remove(i);
+            }
+            Msg::RemoveAll => {
+                self.todos = vec![];
+            }
+            Msg::UpdateEdit(s) => {
+                //assigns the string s to edit_input.
+                self.edit_input = s;
+            }
+            Msg::Edit(i) => {
+                //creates a new todo from the edited text.
+                let val = Todo {
+                    text: self.edit_input.clone(),
+                    edit: false,
+                };
+                self.todos.remove(i);
+                self.todos.push(val);
+            }
+            Msg::Toggle(i) => {
+                //gets todo from vector then looks at edit field.
+                let todo = self.todos.get_mut(i).unwrap();
+                todo.edit = !todo.edit;
+            }
+            Msg::Nothing => {}            
+        } // end match
+        
+        true
+    }// end update
+} //end impl Component<Context> for Model
 
 impl Renderable<Context, Model> for Model {
     fn view(&self) -> Html<Context, Self> {
@@ -125,11 +142,8 @@ impl Renderable<Context, Model> for Model {
 } // end impl Renderable<Context, Model> for Model
 
 fn main() {
-    let model = Model {
-        todos: vec![],
-        input: "".to_string(),
-        edit_input: "".to_string(),
-    };//web server comes with hot reloading so everytime we change our code it will 
-    //automatically recompile it on the server.
-    program(model, update, view);
+    yew::initialize();
+    let app: App<_, Model> = App::new(());
+    app.mount_to_body();
+    yew::run_loop();
 }
