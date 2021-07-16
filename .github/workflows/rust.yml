@@ -25,4 +25,4 @@ jobs:
           source ./emsdk_env.sh
     - name: Build
       working-directory: src/
-      run: cargo web start
+      run: cargo web start --target-webasm-emscripten=wasm32-unknown-emscripten --release
