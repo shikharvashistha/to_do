@@ -93,10 +93,7 @@ impl Renderable<Context, Model> for Model {
        //allows for editing of todos independently.
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
         html!{
-            <label><input type="text",
-                    value=&todo.text,
-                    oninput=|e: InputData| Msg::UpdateEdit(e.value),
-                    onkeypress=move |e: KeyData| {
+            <label><input type="text",value=&todo.text,oninput=|e: InputData| Msg::UpdateEdit(e.value),onkeypress=move |e: KeyData| {
                         if e.key == "Enter" {Msg::Edit(i)} else {Msg::Nothing}
                     },
                     />
