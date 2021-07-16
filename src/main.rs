@@ -71,11 +71,11 @@ fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
     }
 }
 
-fn view(model: &Model) -> Html<Msg> {
-    //allows for editing of todos independently.
+impl Renderable<Context, Model> for Model {
+    fn view(&self) -> Html<Context, Self> {
+       //allows for editing of todos independently.
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
-        //Closure to create a new todo from the edited text.
-        html!{//This allow us to write html in rust.
+        html!{
             <label><input type="text",
                     value=&todo.text,
                     oninput=|e: InputData| Msg::UpdateEdit(e.value),
@@ -83,53 +83,46 @@ fn view(model: &Model) -> Html<Msg> {
                         if e.key == "Enter" {Msg::Edit(i)} else {Msg::Nothing}
                     },
                     />
-                    </label>
+            </label>
         }
     } else {
         html! {
-            <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
-            </label>
+                <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
+                </label>
         }
     };
     let view_todo = |(i, todo): (usize, &Todo)| {
-        html!{//removes a particular todo from the todos vector.
+        html!{
             <li>
                 { view_todo_edit((i, &todo))}
             </li>
             <button onclick = move |_| Msg::Remove(i),>{"X"}</button></li>
-            //move closure takes the oewnership of our index
         }
     };
+        html! {
+            <div>
+                <h1>{"Todo App"}</h1>
+                <input
+                    placeholder="what do you want to do?",
+                    value=&self.input,
+                    oninput=|e: InputData| Msg::Update(e.value),
+                    onkeypress=|e: KeyData| {
+                        if e.key == "Enter" {Msg::Add} else {Msg::Nothing}
+                    },/>
 
-
-    html! {
-        <div>
-            <h1>{"Todo App"}</h1>
-            <input
-                placeholder="what do you want to do?",
-                value=&model.input,//Signify that the value of our input is model.input
-                oninput=|e: InputData| Msg::Update(e.value),//oninput listner it will take a closure which will take input data and msg update
-                onkeypress=|e: KeyData| {//on key press listner allow user to enter actual data
-                    if e.key == "Enter" {Msg::Add} else {Msg::Nothing}//if the key pressed is enter 
-                    //we will put call the msg add function otherwise we do nothing
-                },/>
-                <p>{&model.input}</p>//paragraph tag to display the input string what user is typing    
-
-        </div>
-        <div>
-            <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
-            //button to delete all todos using onclick listner it'll take an element
-            //which is anonoyms and it calls remove all function
-        </div>
-        <div>
-            <ul>//unordered list
-            {for model.todos.iter().enumerate().map(view_todo)}//enumerate across the iterator
-            //it'll return numbers for each of the index of elements in the vector
-            //then we'll map those numbers and values onto our view_todo closure.
-            </ul>
-        </div>
-    }
-}
+            </div>
+            <div>
+                <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
+            </div>
+            <div>
+                <ul>
+                {for self.todos.iter().enumerate().map(view_todo)}
+                </ul>
+            </div>
+        }
+       
+    } // end fn view(&self) -> Html<Context, Self>
+} // end impl Renderable<Context, Model> for Model
 
 fn main() {
     let model = Model {
