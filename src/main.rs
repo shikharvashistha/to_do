@@ -1,10 +1,7 @@
 #[macro_use]
 extern crate yew;
 
-use yew::prelude::*;
-
-type Context = ();
-
+use yew::html::*;
 
 struct Model {
     input: String,
@@ -30,67 +27,49 @@ enum Msg {
     Nothing,
 }
 
-
-impl Component<Context> for Model {
-    type Msg = Msg;
-    type Properties = ();
-
-    fn create(_: &mut Env<Context, Self>) -> Self {
-        Model {
-            todos: vec![],
-            input: "".to_string(),
-            edit_input: "".to_string(),
+fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+    match msg {
+        Msg::Add => {
+            let t = Todo {
+                text: model.input.clone(),
+                edit: false,
+            };
+            model.todos.push(t);
+            model.input = "".to_string();
         }
+        Msg::Update(s) => {
+            model.input = s;
+        }
+        Msg::Remove(i) => {
+            model.todos.remove(i);
+        }
+        Msg::RemoveAll => {
+            model.todos = vec![];
+        }
+        Msg::UpdateEdit(s) => {
+            //assigns the string s to edit_input.
+            model.edit_input = s;
+        }
+        Msg::Edit(i) => {
+            //creates a new todo from the edited text.
+            let val = Todo {
+                text: model.edit_input.clone(),
+                edit: false,
+            };
+            model.todos.remove(i);
+            model.todos.push(val);
+        }
+        Msg::Toggle(i) => {
+            //gets todo from vector then looks at edit field.
+            let todo = model.todos.get_mut(i).unwrap();
+            todo.edit = !todo.edit;
+        }
+        Msg::Nothing => {}
     }
+}
 
-    // Some details omitted. Explore the examples to get more.
-    fn update(&mut self, msg: Self::Msg, _: &mut Env<Context, Self>) -> ShouldRender {
-            match msg {
-            Msg::Add => {
-                let t = Todo {
-                    text: self.input.clone(),
-                    edit: false,
-                };
-                self.todos.push(t);
-                self.input = "".to_string();
-            }
-            Msg::Update(s) => {
-                self.input = s;
-            }
-            Msg::Remove(i) => {
-                self.todos.remove(i);
-            }
-            Msg::RemoveAll => {
-                self.todos = vec![];
-            }
-            Msg::UpdateEdit(s) => {
-                //assigns the string s to edit_input.
-                self.edit_input = s;
-            }
-            Msg::Edit(i) => {
-                //creates a new todo from the edited text.
-                let val = Todo {
-                    text: self.edit_input.clone(),
-                    edit: false,
-                };
-                self.todos.remove(i);
-                self.todos.push(val);
-            }
-            Msg::Toggle(i) => {
-                //gets todo from vector then looks at edit field.
-                let todo = self.todos.get_mut(i).unwrap();
-                todo.edit = !todo.edit;
-            }
-            Msg::Nothing => {}            
-        } // end match
-        
-        true
-    }// end update
-} //end impl Component<Context> for Model
-
-impl Renderable<Context, Model> for Model {
-    fn view(&self) -> Html<Context, Self> {
-       //allows for editing of todos independently.
+fn view(model: &Model) -> Html<Msg> {
+    //allows for editing of todos independently.
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
         html!{
             <label><input type="text",
@@ -100,12 +79,12 @@ impl Renderable<Context, Model> for Model {
                         if e.key == "Enter" {Msg::Edit(i)} else {Msg::Nothing}
                     },
                     />
-            </label>
+                    </label>
         }
     } else {
         html! {
-                <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
-                </label>
+            <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
+            </label>
         }
     };
     let view_todo = |(i, todo): (usize, &Todo)| {
@@ -116,34 +95,36 @@ impl Renderable<Context, Model> for Model {
             <button onclick = move |_| Msg::Remove(i),>{"X"}</button></li>
         }
     };
-        html! {
-            <div>
-                <h1>{"Todo App"}</h1>
-                <input
-                    placeholder="what do you want to do?",
-                    value=&self.input,
-                    oninput=|e: InputData| Msg::Update(e.value),
-                    onkeypress=|e: KeyData| {
-                        if e.key == "Enter" {Msg::Add} else {Msg::Nothing}
-                    },/>
 
-            </div>
-            <div>
-                <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
-            </div>
-            <div>
-                <ul>
-                {for self.todos.iter().enumerate().map(view_todo)}
-                </ul>
-            </div>
-        }
-       
-    } // end fn view(&self) -> Html<Context, Self>
-} // end impl Renderable<Context, Model> for Model
+
+    html! {
+        <div>
+            <h1>{"Todo App"}</h1>
+            <input
+                placeholder="what do you want to do?",
+                value=&model.input,
+                oninput=|e: InputData| Msg::Update(e.value),
+                onkeypress=|e: KeyData| {
+                    if e.key == "Enter" {Msg::Add} else {Msg::Nothing}
+                },/>
+
+        </div>
+        <div>
+            <button onclick = |_| Msg::RemoveAll, >{"Delete all Todos!"}</button>
+        </div>
+        <div>
+            <ul>
+            {for model.todos.iter().enumerate().map(view_todo)}
+            </ul>
+        </div>
+    }
+}
 
 fn main() {
-    yew::initialize();
-    let app: App<_, Model> = App::new(());
-    app.mount_to_body();
-    yew::run_loop();
+    let model = Model {
+        todos: vec![],
+        input: "".to_string(),
+        edit_input: "".to_string(),
+    };
+    program(model, update, view);
 }
