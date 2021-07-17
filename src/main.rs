@@ -27,7 +27,7 @@ enum Msg {
     Nothing,
 }
 
-fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
+fn update(_: &mut yew::worker::Context<Msg>, model: &mut Model, msg: Msg) {
     match msg {
         Msg::Add => {
             let t = Todo {
@@ -71,7 +71,7 @@ fn update(_: &mut Context<Msg>, model: &mut Model, msg: Msg) {
 fn view(model: &Model) -> Html<Msg> {
     //allows for editing of todos independently.
     let view_todo_edit = |(i, todo): (usize, &Todo)| if todo.edit == true {
-        html!{
+       html!{
             <label><input type="text",
                     value=&todo.text,
                     oninput=|e: InputData| Msg::UpdateEdit(e.value),
@@ -83,7 +83,7 @@ fn view(model: &Model) -> Html<Msg> {
         }
     } else {
         html! {
-            <label ondoubleclick=move|_| Msg::Toggle(i), > {format!("{} ", &todo.text)}
+            <label ondoubleclick=move|_| Msg::Toggle(i),> {format!("{} ", &todo.text)}
             </label>
         }
     };
